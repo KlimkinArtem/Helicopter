@@ -59,6 +59,7 @@ void AHelicopterCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHelicopterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AHelicopterCharacter::MoveRight);
+	
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
