@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "HelicopterCharacter.h"
+
+#include "DrawDebugHelpers.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -73,9 +75,10 @@ void AHelicopterCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AHelicopterCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AHelicopterCharacter::TouchStopped);
 
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AHelicopterCharacter::OnResetVR);
+	PlayerInputComponent->BindAction("Debug", IE_Pressed, this, &AHelicopterCharacter::Debug);
 }
+
+
 
 
 void AHelicopterCharacter::OnResetVR()
@@ -137,5 +140,38 @@ void AHelicopterCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+
+void AHelicopterCharacter::Debug()
+{
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = ((FollowCamera->GetForwardVector() * 50000.f) + Start);
+
+	
+	FHitResult OutHit;
+	
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+	
+	
+	
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 3, 0, 2);
+	
+	bool bIsHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Pawn, CollisionParams);
+	
+	if(bIsHit)
+	{
+		if(GEngine)
+		{
+			if(OutHit.Actor->ActorHasTag("Destruction"))
+			{
+				AActor* RadialForceSpawn = GetWorld()->SpawnActor<AActor>(RadialForce,OutHit.ImpactPoint, FRotator::ZeroRotator);
+				RadialForceSpawn->Destroy();
+			}
+		}
+
+		
 	}
 }
