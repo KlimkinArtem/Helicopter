@@ -41,6 +41,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UStaticMeshComponent* RearBlade;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UStaticMeshComponent* Weapon;
 	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -52,6 +55,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Curve")
 	UCurveFloat* LiftCurve;
 
+	
+
+	UPROPERTY(EditAnywhere, Category="Trace")
+	float Radius = 50.f;
+
+	UPROPERTY(EditAnywhere, Category="Trace")
+	float Segments = 18.f;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Destruction")
+	TSubclassOf<AActor> RadialForce;
 
 private:
 	 //Константы
@@ -74,7 +87,8 @@ private:
 	FVector PrevAcceleration = FVector(0, 0, 0);
 	FVector PrevPosition = FVector(0, 0, 0);
 
-
+	//Методы
+	
 	void UpdateBladeRotation(float DeltaTime);
 	void CalculatVelocityAndAceleration(float DeltaTime);
 	void UpdatePrevVersion();
@@ -83,14 +97,17 @@ private:
 	void SimulateForwardAcceleration(float DeltaTime);
 	void MoveHelicopter(float DeltaTime);
 	void RotateBlades(float DeltaTime);
-
 	
 	float GetCurrentLift() const;
 	float GetTurnSpeed() const;
 
+	//inputs
+	
 	void HeliThrottle(float Value);
 	void HeliTurn(float Value);
 	void HeliPitch(float Value);
+	void Debug();
 };
+
 
 

@@ -3,6 +3,7 @@
 
 #include "Helicopter_.h"
 
+#include "DrawDebugHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Misc/OutputDeviceNull.h"
@@ -28,6 +29,9 @@ AHelicopter_::AHelicopter_()
 	RearBlade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RearBlade"));
 	RearBlade->SetupAttachment(RearRotor);
 
+	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
+	Weapon->SetupAttachment(Body);
+
 	/*
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(Body);
@@ -40,12 +44,12 @@ AHelicopter_::AHelicopter_()
 	CameraBoom->CameraRotationLagSpeed = 5.f;
 	CameraBoom->SetRelativeLocation(FVector(0,0,220));
 	CameraBoom->SocketOffset = FVector(0,0,500);
-
+	
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = true;
-
 	*/
+	
 }
 
 // Called when the game starts or when spawned
@@ -79,6 +83,8 @@ void AHelicopter_::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("HeliThrottle", this, &AHelicopter_::HeliThrottle);
 	PlayerInputComponent->BindAxis("HeliTurn", this, &AHelicopter_::HeliTurn);
 	PlayerInputComponent->BindAxis("HeliPitch", this, &AHelicopter_::HeliPitch);
+	
+	PlayerInputComponent->BindAction("Debug", IE_Pressed, this, &AHelicopter_::Debug);
 }
 
 void AHelicopter_::UpdateBladeRotation(float DeltaTime)
@@ -175,4 +181,37 @@ void AHelicopter_::HeliPitch(float Value)
 		AddActorLocalRotation(FRotator(CurrentPitch,0,0));
 	}
 	
+}
+
+void AHelicopter_::Debug()
+{
+	FVector Start = RootComponent->GetChildComponent(3)->GetChildComponent(0)->GetComponentLocation();
+	FVector ForwardVector = RootComponent->GetChildComponent(3)->GetChildComponent(0)->GetForwardVector();
+	FVector End = ((ForwardVector * 50000.f) + Start);
+
+	
+	FHitResult OutHit;
+	
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+	
+	
+	
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 3, 0, 2);
+	
+	bool bIsHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Pawn, CollisionParams);
+	
+	if(bIsHit)
+	{
+		if(GEngine)
+		{
+			if(OutHit.Actor->ActorHasTag("Destruction"))
+			{
+				AActor* RadialForceSpawn = GetWorld()->SpawnActor<AActor>(RadialForce,OutHit.ImpactPoint, FRotator::ZeroRotator);
+				RadialForceSpawn->Destroy();
+			}
+		}
+
+		
+	}
 }
